@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin: 30px 0;
+            justify-content: center;
+        }
+        .image-box {
+            text-align: center;
+            flex: 1;
+            min-width: 300px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .image-box img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 4px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #originalImg {
+            border: 2px solid #4CAF50;
+        }
+        #processedImg {
+            border: 2px solid #2196F3;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<h1>Image Processing Results</h1>
+
+<div class="controls">
+    <button onclick="processImage('pca')">Apply PCA</button>
+    <button onclick="processImage('nmf')">Apply NMF</button>
+    <button onclick="location.href='/'" style="background: #f44336;">New Upload</button>
+</div>
+
+<div id="loading" class="loading">
+    Processing image, please wait...
+</div>
+
+<div class="image-container">
+    <div class="image-box">
+        <h2>Original Image</h2>
+        <img id="originalImg" src="{{.image}}" alt="Original">
+    </div>
+
+    <div class="image-box">
+        <h2>Processed Image</h2>
+        <img id="processedImg" src="" alt="Processed" style="display: none;">
+        <p id="noImageText">Select a processing method to see results</p>
+    </div>
+</div>
+
+<script>
+    const imageId = "{{.id}}";
+    const processedImg = document.getElementById('processedImg');
+    const noImageText = document.getElementById('noImageText');
+    const loadingIndicator = document.getElementById('loading');
+
+    async function processImage(method) {
+        try {
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            noImageText.style.display = 'none';
+            processedImg.style.display = 'none';
+
+            // Prepare request data
+            const requestData = {
+                image_id: imageId,
+                method: method,
+                n_factors: 10  // Default number of factors
+            };
+
+            console.log("Sending request:", requestData);  // Debug log
+
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            console.log("Received response:", response);  // Debug log
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Server error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Processing result:", data);  // Debug log
+
+            if (!data.result) {
+                throw new Error("Invalid response format: missing result");
+            }
+
+            // Force browser to reload image
+            processedImg.src = data.result + '?' + new Date().getTime();
+            processedImg.style.display = 'block';
+
+        } catch (err) {
+            console.error("Processing error:", err);
+            alert('Error: ' + err.message);
+            noImageText.style.display = 'block';
+        } finally {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
