@@ -9,10 +9,8 @@ import (
 )
 
 func main() {
-	// Инициализация маршрутизатора
 	r := gin.Default()
 
-	// Создание необходимых папок
 	if err := os.MkdirAll("web/templates", os.ModePerm); err != nil {
 		log.Fatal("Failed to create templates directory:", err)
 	}
@@ -20,10 +18,8 @@ func main() {
 		log.Fatal("Failed to create uploads directory:", err)
 	}
 
-	// Настройка маршрутов
 	handlers.SetupRoutes(r)
 
-	// Запуск сервера
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

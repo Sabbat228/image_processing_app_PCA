@@ -12,7 +12,6 @@ type ImageProcessor struct {
 	nmfAlgo *NMFDenoising
 }
 
-// NewImageProcessor создает новый экземпляр ImageProcessor с заданными параметрами
 func NewImageProcessor(pcaMaxComps, nmfMaxIters int) *ImageProcessor {
 	return &ImageProcessor{
 		pcaAlgo: NewPCADenoising(pcaMaxComps),
@@ -20,7 +19,6 @@ func NewImageProcessor(pcaMaxComps, nmfMaxIters int) *ImageProcessor {
 	}
 }
 
-// ProcessImage обрабатывает изображение выбранным методом
 func (ip *ImageProcessor) ProcessImage(method string, img image.Image, nFactors int) (image.Image, error) {
 	if img == nil {
 		return nil, fmt.Errorf("input image is nil")
@@ -40,12 +38,10 @@ func (ip *ImageProcessor) ProcessImage(method string, img image.Image, nFactors 
 	return utils.ConvertMatrixToImage(result), nil
 }
 
-// ApplyPCA применяет PCA к матрице
 func (ip *ImageProcessor) ApplyPCA(matrix *mat.Dense, nComponents int) *mat.Dense {
 	return ip.pcaAlgo.Process(matrix, nComponents)
 }
 
-// ApplyNMF применяет NMF к матрице
 func (ip *ImageProcessor) ApplyNMF(matrix *mat.Dense, nComponents int) *mat.Dense {
 	return ip.nmfAlgo.Process(matrix, nComponents)
 }

@@ -16,12 +16,10 @@ var (
 	ErrInvalidMethod      = errors.New("invalid processing method")
 )
 
-// ConvertImageToMatrix преобразует изображение в матрицу
 func ConvertImageToMatrix(img image.Image) *mat.Dense {
 	bounds := img.Bounds()
 	width, height := bounds.Max.X-bounds.Min.X, bounds.Max.Y-bounds.Min.Y
 
-	// Проверка размеров
 	if width <= 0 || height <= 0 {
 		return mat.NewDense(1, 1, []float64{0})
 	}
@@ -38,7 +36,6 @@ func ConvertImageToMatrix(img image.Image) *mat.Dense {
 	return mat.NewDense(height, width, data)
 }
 
-// ConvertMatrixToImage преобразует матрицу в изображение
 func ConvertMatrixToImage(m *mat.Dense) image.Image {
 	rows, cols := m.Dims()
 	img := image.NewGray(image.Rect(0, 0, cols, rows))
@@ -47,7 +44,6 @@ func ConvertMatrixToImage(m *mat.Dense) image.Image {
 		for x := 0; x < cols; x++ {
 			var sum float64
 			count := 0
-			// Усреднение 3x3
 			for dy := -1; dy <= 1; dy++ {
 				for dx := -1; dx <= 1; dx++ {
 					ny, nx := y+dy, x+dx
@@ -63,5 +59,3 @@ func ConvertMatrixToImage(m *mat.Dense) image.Image {
 	}
 	return img
 }
-
-// LoadImage загружает изображение из файла

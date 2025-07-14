@@ -9,7 +9,6 @@ import (
 	"image/png"
 )
 
-// LoadImage загружает изображение из файла
 func LoadImage(path string) (image.Image, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -25,9 +24,7 @@ func LoadImage(path string) (image.Image, error) {
 	return img, nil
 }
 
-// SaveImage сохраняет изображение в файл (формат PNG)
 func SaveImage(path string, img image.Image) error {
-	// Создаем директорию если ее нет
 	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
 		return err
 	}

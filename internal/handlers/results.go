@@ -8,17 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ResultsHandler обрабатывает запросы к результатам
 type ResultsHandler struct {
 	uploadsDir string
 }
 
-// NewResultsHandler создает новый экземпляр ResultsHandler
 func NewResultsHandler(uploadsDir string) *ResultsHandler {
 	return &ResultsHandler{uploadsDir: uploadsDir}
 }
 
-// Handle обрабатывает GET запросы для просмотра результатов
 func (h *ResultsHandler) Handle(c *gin.Context) {
 	id := c.Param("id")
 	filePath := filepath.Join(h.uploadsDir, id)

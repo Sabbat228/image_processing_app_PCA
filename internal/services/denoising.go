@@ -23,13 +23,11 @@ func NewPCADenoising(maxComps int) *PCADenoising {
 func (p *PCADenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 	rows, cols := matrix.Dims()
 
-	// Проверка на пустую матрицу
 	if rows == 0 || cols == 0 {
 		log.Println("PCA: empty input matrix")
 		return matrix
 	}
 
-	// Корректировка количества компонентов
 	if nComponents <= 0 {
 		nComponents = cols
 	}
@@ -40,7 +38,6 @@ func (p *PCADenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 		nComponents = p.maxComponents
 	}
 
-	// Центрирование данных
 	centered := mat.NewDense(rows, cols, nil)
 	means := make([]float64, cols)
 
@@ -52,11 +49,9 @@ func (p *PCADenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 		}
 	}
 
-	// Ковариационная матрица
 	var cov mat.SymDense
 	cov.SymOuterK(1.0/float64(rows-1), centered)
 
-	// Вычисление собственных векторов и значений
 	var eig mat.EigenSym
 	if ok := eig.Factorize(&cov, true); !ok {
 		log.Println("PCA: failed to factorize covariance matrix")
@@ -66,7 +61,6 @@ func (p *PCADenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 	var vecs mat.Dense
 	eig.VectorsTo(&vecs)
 
-	// Проверка размерности матрицы собственных векторов
 	vecRows, vecCols := vecs.Dims()
 	if vecRows != cols || vecCols != cols {
 		log.Printf("PCA: unexpected eigenvectors dimensions: got %dx%d, expected %dx%d",
@@ -74,19 +68,16 @@ func (p *PCADenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 		return matrix
 	}
 
-	// Безопасное извлечение компонентов
 	var components mat.Dense
 	if nComponents > vecCols {
 		nComponents = vecCols
 	}
 	components = *vecs.Slice(0, vecRows, 0, nComponents).(*mat.Dense)
 
-	// Проецирование и реконструкция
 	var projected, reconstructed mat.Dense
 	projected.Mul(centered, &components)
 	reconstructed.Mul(&projected, components.T())
 
-	// Восстановление данных
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
 			val := reconstructed.At(i, j) + means[j]
@@ -109,13 +100,11 @@ func NewNMFDenoising(maxIters int) *NMFDenoising {
 func (n *NMFDenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 	rows, cols := matrix.Dims()
 
-	// Проверка на пустую матрицу
 	if rows == 0 || cols == 0 {
 		log.Println("NMF: empty input matrix")
 		return matrix
 	}
 
-	// Корректировка количества компонентов
 	if nComponents <= 0 {
 		nComponents = 1
 	}
@@ -123,11 +112,9 @@ func (n *NMFDenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 		nComponents = cols
 	}
 
-	// Инициализация матриц W и H
 	W := mat.NewDense(rows, nComponents, nil)
 	H := mat.NewDense(nComponents, cols, nil)
 
-	// Заполнение случайными значениями в диапазоне [0.5, 1.5]
 	for i := 0; i < rows; i++ {
 		for j := 0; j < nComponents; j++ {
 			W.Set(i, j, 0.5+rand.Float64())
@@ -139,12 +126,10 @@ func (n *NMFDenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 		}
 	}
 
-	// Алгоритм NMF
 	for iter := 0; iter < n.maxIterations; iter++ {
 		var WH mat.Dense
 		WH.Mul(W, H)
 
-		// Обновление H
 		var WT mat.Dense
 		WT.CloneFrom(W.T())
 
@@ -159,7 +144,6 @@ func (n *NMFDenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 			}
 		}
 
-		// Обновление W
 		var HT mat.Dense
 		HT.CloneFrom(H.T())
 
@@ -175,11 +159,9 @@ func (n *NMFDenoising) Process(matrix *mat.Dense, nComponents int) *mat.Dense {
 		}
 	}
 
-	// Реконструкция изображения
 	var reconstructed mat.Dense
 	reconstructed.Mul(W, H)
 
-	// Нормализация значений в диапазон [0, 255]
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
 			val := reconstructed.At(i, j) * 255
